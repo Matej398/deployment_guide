@@ -686,13 +686,29 @@
             font-weight: 700;
         }
 
-        .project-name {
-            color: #28a745;
-            font-weight: 700;
+        .git-setup {
+            background: #fff9e6;
+            padding: 25px;
+            margin: 30px 0;
+            border-left: 5px solid #ffc107;
         }
 
-        .dark-theme .project-name {
-            color: #8b9dc3;
+        .dark-theme .git-setup {
+            background: #2d2416;
+            border-left-color: #ffc107;
+        }
+
+        .git-setup h3 {
+            color: #e67e00;
+            margin-bottom: 15px;
+        }
+
+        .dark-theme .git-setup h3 {
+            color: #ffc107;
+        }
+
+        .git-setup h3::before {
+            content: '⚙️ ';
         }
     </style>
 </head>
@@ -764,33 +780,62 @@
                 </div>
             </div>
 
-            <h3>installing git</h3>
-            <p>if git is not installed:</p>
-            <ol>
-                <li>go to <a href="https://git-scm.com/download/win" target="_blank">git-scm.com/download/win</a></li>
-                <li>download the installer for windows</li>
-                <li>run the installer</li>
-                <li>use default settings (just click next through all options)</li>
-                <li>after installation, open windows terminal and verify:
-                    <div class="code-block">
-                        <code>git --version</code>
-                        <button class="copy-btn" onclick="copyCode(this)">copy</button>
-                    </div>
-                </li>
-                <li>if it shows version number, git is installed correctly</li>
-            </ol>
+            <div class="git-setup">
+                <h3>installing git</h3>
+                <p>if git is not installed:</p>
+                <ol>
+                    <li>go to <a href="https://git-scm.com/download/win" target="_blank">git-scm.com/download/win</a></li>
+                    <li>download the installer for windows</li>
+                    <li>run the installer</li>
+                    <li>use default settings (just click next through all options)</li>
+                    <li>after installation, open windows terminal and verify:
+                        <div class="code-block">
+                            <code>git --version</code>
+                            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+                        </div>
+                    </li>
+                    <li>if it shows version number, git is installed correctly</li>
+                </ol>
 
-            <h3>configure git (first time only)</h3>
-            <p>set your name and email (required before first commit):</p>
-            <div class="code-block">
-                <code>git config --global user.name "Your Name"</code>
-                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+                <h3>configure git (first time only)</h3>
+                <p>set your name and email (required before first commit):</p>
+                <div class="code-block">
+                    <code>git config --global user.name "Your Name"</code>
+                    <button class="copy-btn" onclick="copyCode(this)">copy</button>
+                </div>
+                <div class="code-block">
+                    <code>git config --global user.email "your-email@example.com"</code>
+                    <button class="copy-btn" onclick="copyCode(this)">copy</button>
+                </div>
+                <div class="info">use the same email as your github account</div>
+
+                <p>verify configuration:</p>
+                <div class="code-block">
+                    <code>git config --global user.name
+git config --global user.email</code>
+                    <button class="copy-btn" onclick="copyCode(this)">copy</button>
+                </div>
+
+                <h3>github authentication (personal access token)</h3>
+                <p>github requires a personal access token instead of password:</p>
+                <ol>
+                    <li>go to <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a></li>
+                    <li>click "Generate new token" → "Generate new token (classic)"</li>
+                    <li>give it a name: "deployment" or "git-access"</li>
+                    <li>set expiration: choose "no expiration" or custom date</li>
+                    <li>check the <strong>"repo"</strong> permission (full control of repositories)</li>
+                    <li>scroll down and click "Generate token"</li>
+                    <li><strong>copy the token immediately</strong> - you'll only see it once!</li>
+                    <li>save it somewhere safe (password manager or text file)</li>
+                </ol>
+
+                <p style="margin-top: 15px;"><strong>using the token:</strong></p>
+                <p>when git asks for password during push, paste your token instead of your github password</p>
+                
+                <div class="warning" style="margin-top: 15px;">
+                    save your token! if you lose it, you'll need to generate a new one
+                </div>
             </div>
-            <div class="code-block">
-                <code>git config --global user.email "your-email@example.com"</code>
-                <button class="copy-btn" onclick="copyCode(this)">copy</button>
-            </div>
-            <div class="info">use the same email as your github account</div>
         </div>
 
         <div class="section">
@@ -881,19 +926,11 @@
             <hr>
 
             <h3>future updates</h3>
-            <p>after making changes, run these commands:</p>
+            <p>after making changes, run these three commands:</p>
             <div class="code-block">
-                <code>git add .</code>
-                <button class="copy-btn" onclick="copyCode(this)">copy</button>
-            </div>
-
-            <div class="code-block">
-                <code>git commit -m "describe your changes"</code>
-                <button class="copy-btn" onclick="copyCode(this)">copy</button>
-            </div>
-
-            <div class="code-block">
-                <code>git push</code>
+                <code>git add .
+git commit -m "describe your changes"
+git push</code>
                 <button class="copy-btn" onclick="copyCode(this)">copy</button>
             </div>
 
