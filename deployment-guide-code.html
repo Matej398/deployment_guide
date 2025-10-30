@@ -1,0 +1,1203 @@
+    <script>
+        // Modal functions
+        function openModal() {
+            document.getElementById('projectModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('projectModal').classList.remove('show');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('projectModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Project name update functionality
+        function updateProjectName() {
+            let projectName = document.getElementById('projectName').value.trim() || 'my-new-project';
+            
+            // Replace spaces with underscores and convert to lowercase
+            projectName = projectName.toLowerCase().replace(/\s+/g, '_');
+            
+            // Update the input field to show the formatted name
+            document.getElementById('projectName').value = projectName;
+            
+            const projectNameElements = document.querySelectorAll('.project-name');
+            
+            projectNameElements.forEach(element => {
+                element.textContent = projectName;
+            });
+
+            // Save to localStorage
+            localStorage.setItem('projectName', projectName);
+            
+            // Close modal
+            closeModal();
+        }
+
+        // Load saved project name
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedProjectName = localStorage.getItem('projectName');
+            if (savedProjectName) {
+                document.getElementById('projectName').value = savedProjectName;
+                updateProjectName();
+            }
+            
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        });
+
+        // Theme toggle functionality
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // Copy functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = '[copied]';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = 'copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                const textArea = document.createElement('textarea');
+                textArea.value = code;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                button.textContent = '[copied]';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = 'copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Collapsible toggle function
+        function toggleCollapsible(button) {
+            button.classList.toggle('active');
+            const content = button.nextElementSibling;
+            
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + 'px';
+            }
+        }
+
+        // Collapsible functionality - Initialize after DOM loads
+        function initCollapsibles() {
+            const collapsibles = document.querySelectorAll('.collapsible');
+            
+            collapsibles.forEach(collapsible => {
+                collapsible.onclick = function() {
+                    this.classList.toggle('active');
+                    const content = this.nextElementSibling;
+                    
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                    }
+                };
+            });
+        }
+
+        // Load saved project name and initialize collapsibles
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedProjectName = localStorage.getItem('projectName');
+            if (savedProjectName) {
+                document.getElementById('projectName').value = savedProjectName;
+                updateProjectName();
+            }
+            
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+
+            // Initialize collapsibles
+            initCollapsibles();
+        });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>website deployment guide</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Light theme (default) */
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #fff;
+            color: #333;
+            line-height: 1.8;
+            padding: 40px 20px;
+            font-size: 14px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Dark theme */
+        body.dark-theme {
+            background: #1e2a3a;
+            color: #b4bcc8;
+        }
+
+        .terminal {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: #333;
+            padding: 8px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2em;
+            line-height: 1;
+        }
+
+        .dark-theme .theme-toggle {
+            color: #8b9dc3;
+        }
+
+        .theme-toggle:hover {
+            color: #000;
+        }
+
+        .dark-theme .theme-toggle:hover {
+            color: #a8b5c9;
+        }
+
+        .project-config-btn {
+            position: fixed;
+            top: 20px;
+            right: 70px;
+            background: transparent;
+            border: 1px solid #ddd;
+            color: #333;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+        }
+
+        .dark-theme .project-config-btn {
+            border-color: #8b9dc3;
+            color: #8b9dc3;
+        }
+
+        .project-config-btn:hover {
+            background: #333;
+            color: #fff;
+            border-color: #333;
+        }
+
+        .dark-theme .project-config-btn:hover {
+            background: #8b9dc3;
+            color: #1e2a3a;
+            border-color: #8b9dc3;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 30px;
+            border: 1px solid #ddd;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .dark-theme .modal-content {
+            background: #1e2a3a;
+            border-color: #8b9dc3;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .modal-header h3::before {
+            content: '';
+        }
+
+        .close-btn {
+            float: right;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #333;
+        }
+
+        .dark-theme .close-btn {
+            color: #b4bcc8;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+
+        .dark-theme .close-btn:hover {
+            color: #8b9dc3;
+        }
+
+        .project-config {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 0;
+        }
+
+        .dark-theme .project-config {
+            background: transparent;
+        }
+
+        .config-input-group {
+            margin: 15px 0;
+        }
+
+        .config-input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .config-input-group input {
+            width: 100%;
+            max-width: 500px;
+            padding: 8px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            background: #fff;
+            border: 1px solid #ddd;
+            color: #333;
+        }
+
+        .dark-theme .config-input-group input {
+            background: #0f1419;
+            border-color: #2d3748;
+            color: #b4bcc8;
+        }
+
+        .update-btn {
+            background: #333;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+            margin-top: 10px;
+        }
+
+        .dark-theme .update-btn {
+            background: #8b9dc3;
+            color: #1e2a3a;
+            border-color: #8b9dc3;
+        }
+
+        .update-btn:hover {
+            opacity: 0.8;
+        }
+
+        .prompt {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .dark-theme .prompt {
+            color: #8b9dc3;
+        }
+
+        .prompt::before {
+            content: '$ ';
+        }
+
+        h1 {
+            color: #000;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .dark-theme h1 {
+            color: #8b9dc3;
+        }
+
+        h2 {
+            color: #000;
+            font-size: 1.3em;
+            margin: 50px 0 20px 0;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .dark-theme h2 {
+            color: #8b9dc3;
+        }
+
+        h2::before {
+            content: '# ';
+            color: #999;
+        }
+
+        .dark-theme h2::before {
+            color: #6b7a8f;
+        }
+
+        h3 {
+            color: #333;
+            font-size: 1.1em;
+            margin: 30px 0 15px 0;
+            font-weight: 700;
+        }
+
+        .dark-theme h3 {
+            color: #b4bcc8;
+        }
+
+        h3::before {
+            content: '## ';
+            color: #999;
+        }
+
+        .dark-theme h3::before {
+            color: #6b7a8f;
+        }
+
+        .section {
+            margin-bottom: 50px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .dark-theme .section {
+            border-bottom-color: #2d3748;
+        }
+
+        .section:last-of-type {
+            border-bottom: none;
+        }
+
+        p {
+            margin: 12px 0;
+            color: #555;
+        }
+
+        .dark-theme p {
+            color: #b4bcc8;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            overflow-x: auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .dark-theme .code-block {
+            background: #0f1419;
+        }
+
+        .code-block code {
+            color: #333;
+            white-space: pre;
+            font-size: 13px;
+            flex: 1;
+        }
+
+        .dark-theme .code-block code {
+            color: #b4bcc8;
+        }
+
+        .comment {
+            color: #999;
+        }
+
+        .dark-theme .comment {
+            color: #6b7a8f;
+        }
+
+        .copy-btn {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+            margin-left: 15px;
+            flex-shrink: 0;
+        }
+
+        .dark-theme .copy-btn {
+            background: #0f1419;
+            color: #b4bcc8;
+            border-color: #2d3748;
+        }
+
+        .copy-btn:hover {
+            background: #333;
+            color: #fff;
+            border-color: #333;
+        }
+
+        .dark-theme .copy-btn:hover {
+            background: #8b9dc3;
+            color: #1e2a3a;
+            border-color: #8b9dc3;
+        }
+
+        .copy-btn.copied {
+            background: #333;
+            color: #fff;
+        }
+
+        .dark-theme .copy-btn.copied {
+            background: #8b9dc3;
+            color: #1e2a3a;
+        }
+
+        ol, ul {
+            margin-left: 30px;
+            margin-top: 15px;
+        }
+
+        li {
+            margin: 10px 0;
+            color: #555;
+        }
+
+        .dark-theme li {
+            color: #b4bcc8;
+        }
+
+        .collapsible {
+            background: transparent;
+            color: #333;
+            cursor: pointer;
+            padding: 12px 0;
+            border: none;
+            text-align: left;
+            width: 100%;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1em;
+            margin: 15px 0;
+            font-weight: 700;
+        }
+
+        .dark-theme .collapsible {
+            color: #b4bcc8;
+        }
+
+        .collapsible:hover {
+            color: #000;
+        }
+
+        .dark-theme .collapsible:hover {
+            color: #8b9dc3;
+        }
+
+        .collapsible::before {
+            content: '[+] ';
+            color: #999;
+        }
+
+        .dark-theme .collapsible::before {
+            color: #6b7a8f;
+        }
+
+        .collapsible.active::before {
+            content: '[-] ';
+            color: #999;
+        }
+
+        .dark-theme .collapsible.active::before {
+            color: #6b7a8f;
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .collapsible-content-inner {
+            padding: 15px 0;
+        }
+
+        a {
+            color: #333;
+            text-decoration: underline;
+        }
+
+        .dark-theme a {
+            color: #8b9dc3;
+        }
+
+        a:hover {
+            color: #000;
+        }
+
+        .dark-theme a:hover {
+            color: #a8b5c9;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 40px 0;
+        }
+
+        .dark-theme hr {
+            border-color: #2d3748;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .card {
+            background: #f5f5f5;
+            padding: 15px;
+        }
+
+        .dark-theme .card {
+            background: #0f1419;
+        }
+
+        .card p:first-child {
+            color: #000;
+            font-weight: 700;
+        }
+
+        .dark-theme .card p:first-child {
+            color: #8b9dc3;
+        }
+
+        .warning {
+            background: #fff3cd;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .dark-theme .warning {
+            background: #3d2f1f;
+            color: #f5c97a;
+        }
+
+        .warning::before {
+            content: '[!] ';
+            font-weight: 700;
+        }
+
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .dark-theme .info {
+            background: #1a2f3f;
+            color: #7eb8d9;
+        }
+
+        .info::before {
+            content: '[i] ';
+            font-weight: 700;
+        }
+
+        .success {
+            background: #d4edda;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .dark-theme .success {
+            background: #1f3328;
+            color: #6ec897;
+        }
+
+        .success::before {
+            content: '[✓] ';
+            font-weight: 700;
+        }
+
+        .project-name {
+            color: #28a745;
+            font-weight: 700;
+        }
+
+        .dark-theme .project-name {
+            color: #8b9dc3;
+        }
+    </style>
+</head>
+<body>
+    <button class="project-config-btn" onclick="openModal()">set project name</button>
+    <button class="theme-toggle" onclick="toggleTheme()">◐</button>
+
+    <!-- Modal -->
+    <div class="modal" id="projectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+                <h3>project configuration</h3>
+            </div>
+            <div class="project-config">
+                <div class="config-input-group">
+                    <label>project name:</label>
+                    <input type="text" id="projectName" placeholder="my-new-project" value="my-new-project">
+                </div>
+                <button class="update-btn" onclick="updateProjectName()">update all references</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="terminal">
+        <div class="prompt">cat deployment-guide.sh</div>
+        
+        <h1>website deployment guide</h1>
+        <p>automated deployment protocol</p>
+
+        <hr>
+
+        <!-- Project Configuration -->
+
+
+        <div class="section">
+            <h2>system requirements</h2>
+            <p>required programs:</p>
+            <div class="grid">
+                <div class="card">
+                    <p>visual studio code</p>
+                    <p class="comment">code editor</p>
+                    <p class="comment"><a href="https://code.visualstudio.com" target="_blank">code.visualstudio.com</a></p>
+                </div>
+                <div class="card">
+                    <p>mamp</p>
+                    <p class="comment">local php server</p>
+                    <p class="comment"><a href="https://www.mamp.info" target="_blank">mamp.info</a></p>
+                </div>
+                <div class="card">
+                    <p>windows terminal</p>
+                    <p class="comment">command line interface</p>
+                    <p class="comment">built into windows 11</p>
+                </div>
+                <div class="card">
+                    <p>git</p>
+                    <p class="comment">version control</p>
+                    <p class="comment"><a href="https://git-scm.com" target="_blank">git-scm.com</a></p>
+                </div>
+                <div class="card">
+                    <p>github account</p>
+                    <p class="comment">repository host</p>
+                    <p class="comment"><a href="https://github.com" target="_blank">github.com</a></p>
+                </div>
+                <div class="card">
+                    <p>hostinger vps</p>
+                    <p class="comment">srv781783.hstgr.cloud</p>
+                    <p class="comment"><a href="https://hpanel.hostinger.com" target="_blank">hpanel.hostinger.com</a></p>
+                </div>
+            </div>
+
+            <h3>installing git</h3>
+            <p>if git is not installed:</p>
+            <ol>
+                <li>go to <a href="https://git-scm.com/download/win" target="_blank">git-scm.com/download/win</a></li>
+                <li>download the installer for windows</li>
+                <li>run the installer</li>
+                <li>use default settings (just click next through all options)</li>
+                <li>after installation, open windows terminal and verify:
+                    <div class="code-block">
+                        <code>git --version</code>
+                        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+                    </div>
+                </li>
+                <li>if it shows version number, git is installed correctly</li>
+            </ol>
+
+            <h3>configure git (first time only)</h3>
+            <p>set your name and email (required before first commit):</p>
+            <div class="code-block">
+                <code>git config --global user.name "Your Name"</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <div class="code-block">
+                <code>git config --global user.email "your-email@example.com"</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <div class="info">use the same email as your github account</div>
+        </div>
+
+        <div class="section">
+            <h2>step 1: create project</h2>
+            <ol>
+                <li>open visual studio code</li>
+                <li>create project folder: <span class="project-name">my-new-project</span></li>
+                <li>write your code</li>
+            </ol>
+            <div class="info">use lowercase with hyphens for project names</div>
+        </div>
+
+        <div class="section">
+            <h2>step 2 (php projects only): local testing with mamp</h2>
+            <ol>
+                <li>open mamp</li>
+                <li>click mamp -> preferences -> server tab</li>
+                <li>in "Document Root" click "Select" button</li>
+                <li>navigate to your project folder and select it</li>
+                <li>click ok and start mamp server</li>
+            </ol>
+            <p>test in browser:</p>
+            <div class="code-block">
+                <code>http://localhost:8888</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <div class="info">for static html/css/js projects, skip this step and just open index.html in your browser</div>
+        </div>
+
+        <div class="section">
+            <h2>step 3: create github repository</h2>
+            <ol>
+                <li>go to <a href="https://github.com" target="_blank">github.com</a></li>
+                <li>click [+] new repository</li>
+                <li>name: <span class="project-name">my-new-project</span></li>
+                <li>do not initialize with readme</li>
+                <li>click create repository</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>step 4: push to github</h2>
+            
+            <h3>first time setup</h3>
+            <p>navigate to project:</p>
+            <div class="code-block">
+                <code>cd C:\Users\Matej\Desktop\codelabhaven\<span class="project-name">my-new-project</span></code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p>initialize git:</p>
+            <div class="code-block">
+                <code>git init</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p>stage files:</p>
+            <div class="code-block">
+                <code>git add .</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p>create commit:</p>
+            <div class="code-block">
+                <code>git commit -m "Initial commit"</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p>set branch:</p>
+            <div class="code-block">
+                <code>git branch -M main</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p>link remote:</p>
+            <div class="code-block">
+                <code>git remote add origin https://github.com/Matej398/<span class="project-name">my-new-project</span>.git</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <div class="warning">replace <span class="project-name">my-new-project</span> with your repository name using the config above</div>
+
+            <p>push to github:</p>
+            <div class="code-block">
+                <code>git push -u origin main</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <hr>
+
+            <h3>future updates</h3>
+            <p>after making changes, run these commands:</p>
+            <div class="code-block">
+                <code>git add .</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <div class="code-block">
+                <code>git commit -m "describe your changes"</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <div class="code-block">
+                <code>git push</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <div class="success">changes deployed to github, auto-deploy to server initiated</div>
+        </div>
+
+        <div class="section">
+            <h2>step 5: configure webhook</h2>
+            
+            <h3>5.1 server setup</h3>
+            <p>get ssh credentials:</p>
+            <ol>
+                <li>access <a href="https://hpanel.hostinger.com" target="_blank">hpanel.hostinger.com</a></li>
+                <li>go to vps section</li>
+                <li>click manage on your vps (srv781783.hstgr.cloud)</li>
+                <li>find ssh access section - you'll see:
+                    <ul>
+                        <li>hostname: srv781783.hstgr.cloud</li>
+                        <li>username: (your ssh username)</li>
+                        <li>port: 22</li>
+                        <li>password: (set or reset if needed)</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <p>connect via ssh using windows terminal:</p>
+            <div class="code-block">
+                <code>ssh your-username@srv781783.hstgr.cloud</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <p>enter your password when prompted</p>
+
+            <p>navigate to web directory:</p>
+            <div class="code-block">
+                <code>cd /home/your-username/domains/codelabhaven.com/public_html</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p>clone repository:</p>
+            <div class="code-block">
+                <code>git clone https://github.com/Matej398/<span class="project-name">my-new-project</span>.git</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <h3>5.2 github webhook</h3>
+            <ol>
+                <li>open repository on <a href="https://github.com" target="_blank">github.com</a></li>
+                <li>settings -> webhooks -> add webhook</li>
+            </ol>
+
+            <p>payload url:</p>
+            <div class="code-block">
+                <code>https://codelabhaven.com/git-hooks/webhook-handler.php</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p>configuration:</p>
+            <ul>
+                <li>content type: application/json</li>
+                <li>secret: leave empty</li>
+                <li>events: just the push event</li>
+                <li>active: checked</li>
+            </ul>
+
+            <h3>5.3 webhook handler script</h3>
+            <p>on your server, create this file structure:</p>
+            <div class="code-block">
+                <code>/home/your-username/domains/codelabhaven.com/public_html/git-hooks/webhook-handler.php</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <p>steps to create:</p>
+            <ol>
+                <li>ssh into your server</li>
+                <li>navigate to public_html: <code style="background: #f5f5f5; padding: 2px 6px;">cd /home/your-username/domains/codelabhaven.com/public_html</code></li>
+                <li>create git-hooks directory: <code style="background: #f5f5f5; padding: 2px 6px;">mkdir git-hooks</code></li>
+                <li>create the file: <code style="background: #f5f5f5; padding: 2px 6px;">nano git-hooks/webhook-handler.php</code></li>
+                <li>paste the code below</li>
+                <li>save: ctrl+o, enter, then ctrl+x to exit</li>
+            </ol>
+            <p>webhook handler code:</p>
+            <div class="code-block" style="max-height: 400px; overflow-y: auto;">
+                <code>&lt;?php
+<span class="comment">// github webhook handler</span>
+
+<span class="comment">// configuration</span>
+$secret = '';
+$repo_dir = '/home/your-username/domains/codelabhaven.com/public_html/<span class="project-name">my-new-project</span>';
+$branch = 'main';
+
+<span class="comment">// log file</span>
+$log_file = __DIR__ . '/deploy.log';
+
+<span class="comment">// get payload</span>
+$payload = file_get_contents('php://input');
+$data = json_decode($payload, true);
+
+<span class="comment">// verify push event</span>
+if (!isset($data['ref']) || $data['ref'] !== "refs/heads/$branch") {
+    file_put_contents($log_file, date('Y-m-d H:i:s') . " [skip]\n", FILE_APPEND);
+    http_response_code(200);
+    exit;
+}
+
+<span class="comment">// execute git pull</span>
+$output = [];
+$return_var = 0;
+$command = "cd $repo_dir && git pull origin $branch 2>&1";
+exec($command, $output, $return_var);
+
+<span class="comment">// log deployment</span>
+$log_message = date('Y-m-d H:i:s') . " [deploy]\n";
+$log_message .= "command: $command\n";
+$log_message .= "output: " . implode("\n", $output) . "\n";
+$log_message .= "status: " . ($return_var === 0 ? 'success' : 'failed') . "\n";
+$log_message .= str_repeat('-', 50) . "\n";
+
+file_put_contents($log_file, $log_message, FILE_APPEND);
+
+<span class="comment">// return status</span>
+if ($return_var === 0) {
+    http_response_code(200);
+    echo "deployment successful";
+} else {
+    http_response_code(500);
+    echo "deployment failed";
+}
+?&gt;</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <div class="warning">update paths: replace your-username and use your project name from config</div>
+        </div>
+
+        <div class="section">
+            <h2>step 6: automated deployment active</h2>
+            <p>workflow:</p>
+            <p>1. edit code -> 2. test mamp -> 3. git push -> 4. webhook -> 5. live</p>
+            
+            <p>quick deploy commands:</p>
+            <div class="code-block">
+                <code>git add .
+git commit -m "your changes"
+git push</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>command reference</h2>
+            <div class="grid">
+                <div class="card">
+                    <p>git status</p>
+                    <p class="comment">check repository state</p>
+                </div>
+                <div class="card">
+                    <p>git diff</p>
+                    <p class="comment">view file changes</p>
+                </div>
+                <div class="card">
+                    <p>git log</p>
+                    <p class="comment">view commit history</p>
+                </div>
+                <div class="card">
+                    <p>git checkout -- file</p>
+                    <p class="comment">discard changes</p>
+                </div>
+                <div class="card">
+                    <p>git pull</p>
+                    <p class="comment">fetch latest changes</p>
+                </div>
+                <div class="card">
+                    <p>git checkout -b branch</p>
+                    <p class="comment">create new branch</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>troubleshooting</h2>
+            
+            <h3>authentication failed</h3>
+            <p>solution: use personal access token</p>
+            <ol>
+                <li>github -> settings -> developer settings</li>
+                <li>personal access tokens -> tokens classic</li>
+                <li>generate token with repo permissions</li>
+                <li>use token as password when prompted</li>
+            </ol>
+
+            <h3>repository not found</h3>
+            <p>solution: verify remote url</p>
+            <div class="code-block">
+                <code>git remote -v</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <h3>webhook not triggering</h3>
+            <p>diagnostics:</p>
+            <ol>
+                <li>github -> settings -> webhooks -> recent deliveries</li>
+                <li>check deploy.log on server</li>
+                <li>manual pull:
+                    <div class="code-block">
+                        <code>cd /path/to/project
+git pull origin main</code>
+                        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+                    </div>
+                </li>
+            </ol>
+
+            <h3>merge conflicts</h3>
+            <p>solution:</p>
+            <div class="code-block">
+                <code><span class="comment"># check conflicted files</span>
+git status
+
+<span class="comment"># edit files to resolve</span>
+<span class="comment"># then stage and commit</span>
+git add .
+git commit -m "resolved conflicts"
+git push</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>best practices</h2>
+            <ul>
+                <li>commit frequently with clear messages</li>
+                <li>use branches for experimental features</li>
+                <li>run git status before commits</li>
+                <li>write descriptive commit messages</li>
+                <li>always test locally before deploying</li>
+            </ul>
+        </div>
+
+        <hr>
+        <p>system: vs code -> mamp -> github -> hostinger vps (srv781783.hstgr.cloud)</p>
+        <p>status: operational</p>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // Load saved theme preference
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        });
+
+        // Copy functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = '[copied]';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = 'copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                const textArea = document.createElement('textarea');
+                textArea.value = code;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                button.textContent = '[copied]';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = 'copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Collapsible functionality
+        const collapsibles = document.querySelectorAll('.collapsible');
+        
+        collapsibles.forEach(collapsible => {
+            collapsible.addEventListener('click', function() {
+                this.classList.toggle('active');
+                const content = this.nextElementSibling;
+                
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                } else {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
