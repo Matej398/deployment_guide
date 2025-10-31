@@ -615,43 +615,82 @@ git push</code>
                 <strong>this is easier than you think!</strong> no manual cloning needed - just add config and webhook, then push!
             </div>
 
-            <h3>5.1 add project to repositories.json</h3>
-            <p>ssh into your server:</p>
+            <h3>5.1 generate unique secret for your project</h3>
+            <p>each project should have its own unique secret for security.</p>
+            
+            <p><strong>open powershell and run this command:</strong></p>
             <div class="code-block">
-                <code>ssh your-username@srv781783.hstgr.cloud</code>
+                <code>([System.BitConverter]::ToString((1..32 | ForEach-Object { Get-Random -Maximum 256 })) -replace '-','').ToLower()</code>
                 <button class="copy-btn" onclick="copyCode(this)">copy</button>
             </div>
 
-            <p>edit the repositories config file:</p>
+            <p>this generates a 64-character secret that matches your existing format</p>
+
+            <div class="warning">
+                <strong>save this secret!</strong> you'll need it for both repositories.json and github webhook
+            </div>
+
+            <h3>5.2 add project to repositories.json</h3>
+            
+            <p><strong>option a: using filezilla (easier)</strong></p>
+            <ol>
+                <li>open filezilla and connect:
+                    <ul>
+                        <li>host: <strong>srv751763.hstgr.cloud</strong></li>
+                        <li>username: <strong>root</strong></li>
+                        <li>password: your ssh password</li>
+                        <li>port: <strong>22</strong></li>
+                    </ul>
+                </li>
+                <li>navigate to: <strong>/var/www/html/codelabhaven/</strong></li>
+                <li>right-click <strong>repositories.json</strong> → "view/edit"</li>
+                <li>it opens in your text editor</li>
+            </ol>
+
+            <p><strong>option b: using ssh terminal</strong></p>
             <div class="code-block">
-                <code>nano /home/your-username/domains/codelabhaven.com/public_html/gh-hooks/repositories.json</code>
+                <code>ssh root@srv751763.hstgr.cloud</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <div class="code-block">
+                <code>nano /var/www/html/codelabhaven/repositories.json</code>
                 <button class="copy-btn" onclick="copyCode(this)">copy</button>
             </div>
 
-            <p>add your project to the list (copy and paste this):</p>
+            <p>add your project to the repositories array (add a comma after the last project, then add this):</p>
             <div class="code-block">
                 <code>{
-    "repo_name": "<span class="project-name">my-new-project</span>",
-    "repo_url": "https://github.com/Matej398/<span class="project-name">my-new-project</span>.git",
-    "deploy_path": "/home/your-username/domains/codelabhaven.com/public_html/projects/<span class="project-name">my-new-project</span>",
+    "name": "<span class="project-name">my-new-project</span>",
+    "owner": "Matej398",
     "branch": "main",
-    "secret": "208974d35900e4d4cb4d3e051db171ba0e963853a6b6d61f70f4af111a583e09"
+    "path": "/var/www/html/codelabhaven/projects/<span class="project-name">my-new-project</span>",
+    "secret": "YOUR_GENERATED_SECRET_HERE",
+    "post_commands": []
 }</code>
                 <button class="copy-btn" onclick="copyCode(this)">copy</button>
             </div>
             <div class="warning">
-                make sure to add a comma after the previous project entry, then paste your new project
+                replace <strong>YOUR_GENERATED_SECRET_HERE</strong> with the secret you generated in step 5.1
             </div>
 
-            <p>save the file: <strong>ctrl+o</strong>, press enter, then <strong>ctrl+x</strong> to exit</p>
+            <p>save the file:</p>
+            <ul>
+                <li><strong>filezilla:</strong> ctrl+s (auto-uploads back to server)</li>
+                <li><strong>nano:</strong> ctrl+o, enter, then ctrl+x to exit</li>
+            </ul>
 
-            <h3>5.2 set up github webhook (one time per project)</h3>
+            <h3>5.3 set up github webhook (one time per project)</h3>
+            <p>now configure github to trigger deployments when you push code:</p>
+
             <ol>
                 <li>go to your repository on <a href="https://github.com" target="_blank">github.com</a></li>
-                <li>click <strong>settings</strong> → <strong>webhooks</strong> → <strong>add webhook</strong></li>
+                <li>click <strong>settings</strong> (top menu bar)</li>
+                <li>click <strong>webhooks</strong> (left sidebar)</li>
+                <li>click <strong>add webhook</strong> (green button)</li>
+                <li>github will ask for your password - enter it to confirm</li>
             </ol>
 
-            <p>webhook configuration:</p>
+            <p><strong>webhook configuration:</strong></p>
             
             <p><strong>payload url:</strong> (copy this exactly)</p>
             <div class="code-block">
@@ -659,24 +698,37 @@ git push</code>
                 <button class="copy-btn" onclick="copyCode(this)">copy</button>
             </div>
 
-            <p><strong>content type:</strong> application/json</p>
+            <p><strong>content type:</strong></p>
+            <ul>
+                <li>select: <strong>application/json</strong> from dropdown</li>
+            </ul>
 
-            <p><strong>secret:</strong> (copy this exactly)</p>
+            <p><strong>secret:</strong> (paste the secret you generated in step 5.1)</p>
             <div class="code-block">
-                <code>208974d35900e4d4cb4d3e051db171ba0e963853a6b6d61f70f4af111a583e09</code>
+                <code>paste your unique secret here</code>
                 <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <div class="warning">
+                <strong>important:</strong> use the SAME secret you put in repositories.json!
             </div>
 
             <p><strong>which events would you like to trigger this webhook?</strong></p>
             <ul>
-                <li>select: <strong>just the push event</strong></li>
+                <li>select: <strong>just the push event</strong> (default option)</li>
             </ul>
 
-            <p><strong>active:</strong> checked ✓</p>
+            <p><strong>active:</strong></p>
+            <ul>
+                <li>make sure the checkbox is <strong>checked ✓</strong></li>
+            </ul>
 
-            <p>click <strong>add webhook</strong></p>
+            <p>click the green <strong>add webhook</strong> button at the bottom</p>
 
-            <h3>5.3 that's it! now just push to deploy</h3>
+            <div class="success">
+                webhook created! github will now notify your server every time you push code
+            </div>
+
+            <h3>5.4 that's it! now just push to deploy</h3>
             <div class="success">
                 <strong>from now on, every time you push to github:</strong><br>
                 1. webhook triggers automatically<br>
@@ -766,14 +818,22 @@ git push</code>
             <h3>webhook not triggering</h3>
             <p>diagnostics:</p>
             <ol>
-                <li>github -> settings -> webhooks -> recent deliveries (check for errors)</li>
-                <li>verify webhook url is correct: https://codelabhaven.com/gh-hooks/webhook-handler.php</li>
-                <li>check that secret matches: 208974d35900e4d4cb4d3e051db171ba0e963853a6b6d61f70f4af111a583e09</li>
-                <li>ssh to server and check logs:
+                <li>github → settings → webhooks → recent deliveries (check for errors)</li>
+                <li>verify webhook url is correct: <strong>https://codelabhaven.com/gh-hooks/webhook-handler.php</strong></li>
+                <li>verify secret matches between repositories.json and github webhook</li>
+                <li>check server logs via ssh:
                     <div class="code-block">
-                        <code>tail -f /home/your-username/domains/codelabhaven.com/public_html/gh-hooks/deploy.log</code>
+                        <code>ssh root@srv751763.hstgr.cloud
+tail -f /var/www/html/codelabhaven/gh-hooks/deploy.log</code>
                         <button class="copy-btn" onclick="copyCode(this)">copy</button>
                     </div>
+                </li>
+                <li>test webhook manually in github:
+                    <ul>
+                        <li>go to settings → webhooks → click your webhook</li>
+                        <li>scroll down to "recent deliveries"</li>
+                        <li>click "redeliver" on any delivery to test</li>
+                    </ul>
                 </li>
             </ol>
 
@@ -804,8 +864,9 @@ git push</code>
         </div>
 
         <hr>
-        <p>system: vs code -> mamp -> github -> hostinger vps (srv781783.hstgr.cloud)</p>
+        <p>system: vs code -> mamp -> github -> hostinger vps (srv751763.hstgr.cloud)</p>
         <p>webhook: https://codelabhaven.com/gh-hooks/webhook-handler.php</p>
+        <p>config: /var/www/html/codelabhaven/repositories.json</p>
         <p>status: operational ✓</p>
     </div>
 
