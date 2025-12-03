@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>adding a new project subdomain - deployment guide</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Light theme (default) */
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #fff;
+            color: #333;
+            line-height: 1.8;
+            padding: 100px 20px 40px 20px;
+            font-size: 14px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Dark theme */
+        body.dark-theme {
+            background: #1e2a3a;
+            color: #b4bcc8;
+        }
+
+        .terminal {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: #333;
+            padding: 8px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2em;
+            line-height: 1;
+        }
+
+        .dark-theme .theme-toggle {
+            color: #8b9dc3;
+        }
+
+        .theme-toggle:hover {
+            color: #000;
+        }
+
+        .dark-theme .theme-toggle:hover {
+            color: #a8b5c9;
+        }
+
+        .project-config-btn {
+            position: fixed;
+            top: 20px;
+            right: 70px;
+            background: transparent;
+            border: 1px solid #ddd;
+            color: #333;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+        }
+
+        .dark-theme .project-config-btn {
+            border-color: #8b9dc3;
+            color: #8b9dc3;
+        }
+
+        .project-config-btn:hover {
+            background: #333;
+            color: #fff;
+            border-color: #333;
+        }
+
+        .dark-theme .project-config-btn:hover {
+            background: #8b9dc3;
+            color: #8b9dc3;
+            border-color: #8b9dc3;
+        }
+
+        .tabs {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0;
+            z-index: 100;
+        }
+
+        .tab {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-right: none;
+            color: #333;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .tab:first-child {
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .tab:last-child {
+            border-right: 1px solid #ddd;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+        .tab:hover {
+            background: #e0e0e0;
+        }
+
+        .tab.active {
+            background: #333;
+            color: #fff;
+            border-color: #333;
+        }
+
+        .tab.active:hover {
+            background: #000;
+        }
+
+        .dark-theme .tab {
+            background: #2d3748;
+            border-color: #4a5568;
+            color: #b4bcc8;
+        }
+
+        .dark-theme .tab:hover {
+            background: #3d4758;
+        }
+
+        .dark-theme .tab.active {
+            background: #8b9dc3;
+            color: #1e2a3a;
+            border-color: #8b9dc3;
+        }
+
+        .dark-theme .tab.active:hover {
+            background: #a8b5c9;
+        }
+
+        h1 {
+            margin-bottom: 40px;
+            font-size: 2em;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .dark-theme h1 {
+            border-color: #8b9dc3;
+        }
+
+        h2 {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            color: #000;
+            font-size: 1.5em;
+        }
+
+        .dark-theme h2 {
+            color: #8b9dc3;
+        }
+
+        h3 {
+            margin-top: 25px;
+            margin-bottom: 15px;
+            color: #000;
+            font-size: 1.2em;
+        }
+
+        .dark-theme h3 {
+            color: #8b9dc3;
+        }
+
+        h4 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #000;
+            font-size: 1.1em;
+        }
+
+        .dark-theme h4 {
+            color: #8b9dc3;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            position: relative;
+            font-family: 'JetBrains Mono', monospace;
+            overflow-x: auto;
+        }
+
+        .dark-theme .code-block {
+            background: #2d3748;
+            border-color: #4a5568;
+        }
+
+        code {
+            white-space: pre;
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            color: #333;
+        }
+
+        .dark-theme code {
+            color: #b4bcc8;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8em;
+        }
+
+        .dark-theme .copy-btn {
+            background: #8b9dc3;
+            color: #1e2a3a;
+        }
+
+        .copy-btn:hover {
+            background: #000;
+        }
+
+        .dark-theme .copy-btn:hover {
+            background: #a8b5c9;
+        }
+
+        .copy-btn.copied {
+            background: #28a745;
+        }
+
+        .comment {
+            color: #6c757d;
+        }
+
+        .dark-theme .comment {
+            color: #8b9dc3;
+        }
+
+        .project-name {
+            background: #fffacd;
+            padding: 2px 6px;
+            font-weight: bold;
+        }
+
+        .dark-theme .project-name {
+            background: #4a5020;
+        }
+
+        .info {
+            background: #e7f3ff;
+            border-left: 3px solid #2196F3;
+            padding: 10px 15px;
+            margin: 10px 0;
+        }
+
+        .dark-theme .info {
+            background: #1a2332;
+            border-color: #8b9dc3;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            padding: 10px 15px;
+            margin: 10px 0;
+        }
+
+        .dark-theme .warning {
+            background: #2d2410;
+            border-color: #ffc107;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 3px solid #28a745;
+            padding: 10px 15px;
+            margin: 10px 0;
+        }
+
+        .dark-theme .success {
+            background: #1a2d1a;
+            border-color: #28a745;
+        }
+
+        ol, ul {
+            margin: 10px 0 10px 20px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+
+        .dark-theme a {
+            color: #8b9dc3;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        hr {
+            margin: 30px 0;
+            border: none;
+            border-top: 1px solid #ddd;
+        }
+
+        .dark-theme hr {
+            border-color: #4a5568;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 500px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .dark-theme .modal-content {
+            background-color: #2d3748;
+            border-color: #4a5568;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .dark-theme .close:hover {
+            color: #fff;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            background: #fff;
+            color: #333;
+        }
+
+        .dark-theme .modal input {
+            background: #1e2a3a;
+            border-color: #4a5568;
+            color: #b4bcc8;
+        }
+
+        .modal button {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1em;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .dark-theme .modal button {
+            background: #8b9dc3;
+            color: #1e2a3a;
+        }
+
+        .modal button:hover {
+            background: #000;
+        }
+
+        .dark-theme .modal button:hover {
+            background: #a8b5c9;
+        }
+    </style>
+</head>
+<body>
+    <div class="tabs">
+        <a href="index.html" class="tab">deployment guide</a>
+        <a href="subdomain-guide.html" class="tab active">subdomain guide</a>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()">◐</button>
+    <button class="project-config-btn" onclick="openModal()">set project name</button>
+
+    <!-- Modal -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 style="margin-top: 0;">configure project name</h2>
+            <p>enter your project name:</p>
+            <input type="text" id="projectName" placeholder="my-new-project" value="my-new-project">
+            <button onclick="updateProjectName()">update</button>
+        </div>
+    </div>
+
+    <div class="terminal">
+        <h1>adding a new project subdomain</h1>
+        <p>complete step-by-step guide for adding a new project subdomain to your existing setup.</p>
+
+        <div class="section">
+            <h2>prerequisites</h2>
+            <ul>
+                <li>vps ip: <code>145.223.99.106</code></li>
+                <li>domain: <code>codelabhaven.com</code></li>
+                <li>ssh access to vps</li>
+                <li>access to hostinger dns management</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>step 1: choose your subdomain name</h2>
+            <p>decide on your subdomain name. examples:</p>
+            <ul>
+                <li><code><span class="project-name">my-new-project</span>.codelabhaven.com</code></li>
+                <li><code>app-name.codelabhaven.com</code></li>
+                <li><code>tool-name.codelabhaven.com</code></li>
+            </ul>
+            <div class="warning">use lowercase letters, numbers, and hyphens only. no underscores or special characters.</div>
+        </div>
+
+        <div class="section">
+            <h2>step 2: add dns a record in hostinger</h2>
+            <ol>
+                <li><strong>log in to hostinger</strong>
+                    <ul>
+                        <li>go to your hostinger account</li>
+                        <li>navigate to dns management for <code>codelabhaven.com</code></li>
+                    </ul>
+                </li>
+                <li><strong>add a record:</strong>
+                    <ul>
+                        <li><strong>type:</strong> <code>A</code></li>
+                        <li><strong>name:</strong> <code><span class="project-name">my-new-project</span></code> (your subdomain name without <code>.codelabhaven.com</code>)</li>
+                        <li><strong>points to:</strong> <code>145.223.99.106</code></li>
+                        <li><strong>ttl:</strong> automatic (or 14400)</li>
+                    </ul>
+                </li>
+                <li><strong>save</strong> the dns record</li>
+                <li><strong>wait for dns propagation</strong> (5-30 minutes, sometimes up to 48 hours)</li>
+            </ol>
+
+            <h3>verify dns propagation:</h3>
+            <p><strong>on your local machine:</strong></p>
+            <div class="code-block">
+                <code>nslookup <span class="project-name">my-new-project</span>.codelabhaven.com</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p><strong>on your vps:</strong></p>
+            <div class="code-block">
+                <code>nslookup <span class="project-name">my-new-project</span>.codelabhaven.com</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p><strong>online check:</strong></p>
+            <ul>
+                <li>visit <a href="https://dnschecker.org" target="_blank">dnschecker.org</a></li>
+                <li>enter: <code><span class="project-name">my-new-project</span>.codelabhaven.com</code></li>
+                <li>select: <code>A</code> record</li>
+                <li>verify it shows <code>145.223.99.106</code> globally</li>
+            </ul>
+
+            <div class="warning">do not proceed until dns has propagated!</div>
+        </div>
+
+        <div class="section">
+            <h2>step 3: ssh into your vps</h2>
+            <div class="code-block">
+                <code>ssh root@145.223.99.106</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <p>enter your ssh password when prompted.</p>
+        </div>
+
+        <div class="section">
+            <h2>step 4: locate your project directory</h2>
+            <p>your project should already be deployed to:</p>
+            <div class="code-block">
+                <code>/var/www/html/codelabhaven/projects/your_project_name/</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p><strong>verify the directory exists:</strong></p>
+            <div class="code-block">
+                <code>ls -la /var/www/html/codelabhaven/projects/</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <div class="info">if your project isn't there yet, deploy it first using your normal deployment process.</div>
+        </div>
+
+        <div class="section">
+            <h2>step 5: create apache virtual host</h2>
+            <p>replace <code><span class="project-name">my-new-project</span></code> with your actual subdomain name, and <code>your_project_name</code> with your actual project directory name.</p>
+            
+            <div class="code-block">
+                <code>cat > /etc/apache2/sites-available/<span class="project-name">my-new-project</span>.codelabhaven.com.conf <<EOF
+<VirtualHost *:80>
+    ServerName <span class="project-name">my-new-project</span>.codelabhaven.com
+    DocumentRoot /var/www/html/codelabhaven/projects/your_project_name
+    
+    <Directory /var/www/html/codelabhaven/projects/your_project_name>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    
+    ErrorLog ${APACHE_LOG_DIR}/<span class="project-name">my-new-project</span>-error.log
+    CustomLog ${APACHE_LOG_DIR}/<span class="project-name">my-new-project</span>-access.log combined
+</VirtualHost>
+EOF</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <div class="warning">replace: <code><span class="project-name">my-new-project</span>.codelabhaven.com</code> → your actual subdomain, <code>your_project_name</code> → your actual project directory name (e.g., <code>my_new_project</code>)</div>
+        </div>
+
+        <div class="section">
+            <h2>step 6: enable the virtual host</h2>
+            <div class="code-block">
+                <code>a2ensite <span class="project-name">my-new-project</span>.codelabhaven.com.conf</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <p>replace <code><span class="project-name">my-new-project</span>.codelabhaven.com.conf</code> with your actual filename.</p>
+        </div>
+
+        <div class="section">
+            <h2>step 7: test apache configuration</h2>
+            <div class="code-block">
+                <code>apache2ctl configtest</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <div class="success">expected output: <code>Syntax OK</code></div>
+            <p>if you see errors, fix them before proceeding.</p>
+        </div>
+
+        <div class="section">
+            <h2>step 8: restart apache</h2>
+            <div class="code-block">
+                <code>systemctl restart apache2</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>step 9: verify virtual host is active</h2>
+            <div class="code-block">
+                <code>apache2ctl -S</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <p>you should see your new virtual host listed in the output.</p>
+        </div>
+
+        <div class="section">
+            <h2>step 10: test http access</h2>
+            <p>visit in your browser:</p>
+            <div class="code-block">
+                <code>http://<span class="project-name">my-new-project</span>.codelabhaven.com</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <div class="info">expected: your project should load (without ssl, so browser will show "not secure")</div>
+
+            <p>if you get a 404 error:</p>
+            <ul>
+                <li>check the documentroot path is correct</li>
+                <li>verify the project files exist in that directory</li>
+                <li>check file permissions: <code>ls -la /var/www/html/codelabhaven/projects/your_project_name</code></li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>step 11: install certbot (if not already installed)</h2>
+            <p>check if certbot is installed:</p>
+            <div class="code-block">
+                <code>certbot --version</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p>if not installed:</p>
+            <div class="code-block">
+                <code>apt-get update
+apt-get install -y certbot python3-certbot-apache</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>step 12: obtain ssl certificate</h2>
+            <p><strong>get ssl certificate for your new subdomain:</strong></p>
+            <div class="code-block">
+                <code>certbot --apache -d <span class="project-name">my-new-project</span>.codelabhaven.com --non-interactive --agree-tos --email matej.resman@gmail.com --redirect</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p>replace:</p>
+            <ul>
+                <li><code><span class="project-name">my-new-project</span>.codelabhaven.com</code> → your actual subdomain</li>
+                <li><code>matej.resman@gmail.com</code> → your email address</li>
+            </ul>
+
+            <p><strong>what this does:</strong></p>
+            <ul>
+                <li>obtains ssl certificate from let's encrypt</li>
+                <li>automatically configures apache for https</li>
+                <li>sets up http → https redirect</li>
+                <li>configures automatic certificate renewal</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>step 13: verify ssl certificate</h2>
+            <p><strong>check certificate status:</strong></p>
+            <div class="code-block">
+                <code>certbot certificates</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <p>you should see your new subdomain listed.</p>
+
+            <p><strong>test https in browser:</strong></p>
+            <p>visit:</p>
+            <div class="code-block">
+                <code>https://<span class="project-name">my-new-project</span>.codelabhaven.com</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p><strong>expected:</strong></p>
+            <ul>
+                <li>✓ green padlock icon (valid ssl certificate)</li>
+                <li>✓ url shows <code>https://</code> (not <code>http://</code>)</li>
+                <li>✓ no security warnings</li>
+            </ul>
+
+            <p><strong>test http redirect:</strong></p>
+            <p>visit:</p>
+            <div class="code-block">
+                <code>http://<span class="project-name">my-new-project</span>.codelabhaven.com</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <div class="success">expected: automatically redirects to <code>https://<span class="project-name">my-new-project</span>.codelabhaven.com</code></div>
+        </div>
+
+        <div class="section">
+            <h2>step 14: update php session cookie domain (if php project)</h2>
+            <div class="warning">only needed if your project uses php and sessions.</div>
+
+            <p><strong>find php files with session configuration:</strong></p>
+            <p>common locations:</p>
+            <ul>
+                <li><code>api/auth.php</code></li>
+                <li><code>api/config.php</code></li>
+                <li><code>includes/session.php</code></li>
+                <li>any file that calls <code>session_set_cookie_params()</code></li>
+            </ul>
+
+            <p><strong>update session cookie domain:</strong></p>
+            <p><strong>edit the file(s):</strong></p>
+            <div class="code-block">
+                <code>nano /var/www/html/codelabhaven/projects/your_project_name/api/auth.php</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p><strong>find this code:</strong></p>
+            <div class="code-block">
+                <code>session_set_cookie_params([
+    'lifetime' => 1209600,
+    'path' => '/',
+    'domain' => '',  // ← This line
+    'secure' => isset($_SERVER['HTTPS']),
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p><strong>change to:</strong></p>
+            <div class="code-block">
+                <code>session_set_cookie_params([
+    'lifetime' => 1209600,
+    'path' => '/',
+    'domain' => '.codelabhaven.com',  // ← Add leading dot
+    'secure' => isset($_SERVER['HTTPS']),
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <p><strong>save and exit:</strong> ctrl+o, enter, ctrl+x</p>
+            <p><strong>repeat for all php files that set session cookies.</strong></p>
+
+            <p><strong>why the leading dot?</strong></p>
+            <p>the leading dot (<code>.codelabhaven.com</code>) makes the cookie work across:</p>
+            <ul>
+                <li><code>codelabhaven.com</code></li>
+                <li><code><span class="project-name">my-new-project</span>.codelabhaven.com</code></li>
+                <li><code>movie-night.codelabhaven.com</code></li>
+                <li>all other subdomains</li>
+            </ul>
+            <p>without the dot, cookies only work for the exact domain.</p>
+        </div>
+
+        <div class="section">
+            <h2>step 15: test everything</h2>
+            <p><strong>final checklist:</strong></p>
+            <ul>
+                <li>[ ] dns resolves correctly: <code>nslookup <span class="project-name">my-new-project</span>.codelabhaven.com</code></li>
+                <li>[ ] http works: <code>http://<span class="project-name">my-new-project</span>.codelabhaven.com</code></li>
+                <li>[ ] https works: <code>https://<span class="project-name">my-new-project</span>.codelabhaven.com</code></li>
+                <li>[ ] http redirects to https</li>
+                <li>[ ] ssl certificate is valid (green padlock)</li>
+                <li>[ ] project loads correctly</li>
+                <li>[ ] login/sessions work (if php project)</li>
+                <li>[ ] no errors in browser console</li>
+                <li>[ ] no 404 or 500 errors</li>
+            </ul>
+
+            <p><strong>check apache logs (if issues):</strong></p>
+            <div class="code-block">
+                <code>tail -f /var/log/apache2/<span class="project-name">my-new-project</span>-error.log
+tail -f /var/log/apache2/<span class="project-name">my-new-project</span>-access.log</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>quick reference commands</h2>
+            <p><strong>for future reference, here's the complete command sequence:</strong></p>
+            <div class="code-block">
+                <code><span class="comment"># 1. SSH into VPS</span>
+ssh root@145.223.99.106
+
+<span class="comment"># 2. Create virtual host (replace placeholders)</span>
+cat > /etc/apache2/sites-available/<span class="project-name">my-new-project</span>.codelabhaven.com.conf <<EOF
+<VirtualHost *:80>
+    ServerName <span class="project-name">my-new-project</span>.codelabhaven.com
+    DocumentRoot /var/www/html/codelabhaven/projects/your_project_name
+    <Directory /var/www/html/codelabhaven/projects/your_project_name>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    ErrorLog ${APACHE_LOG_DIR}/<span class="project-name">my-new-project</span>-error.log
+    CustomLog ${APACHE_LOG_DIR}/<span class="project-name">my-new-project</span>-access.log combined
+</VirtualHost>
+EOF
+
+<span class="comment"># 3. Enable site</span>
+a2ensite <span class="project-name">my-new-project</span>.codelabhaven.com.conf
+
+<span class="comment"># 4. Test and restart</span>
+apache2ctl configtest
+systemctl restart apache2
+
+<span class="comment"># 5. Get SSL certificate</span>
+certbot --apache -d <span class="project-name">my-new-project</span>.codelabhaven.com --non-interactive --agree-tos --email matej.resman@gmail.com --redirect
+
+<span class="comment"># 6. Verify</span>
+certbot certificates
+apache2ctl -S</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>troubleshooting</h2>
+
+            <h3>dns not resolving</h3>
+            <p><strong>problem:</strong> <code>nslookup</code> shows no results or wrong ip</p>
+            <p><strong>solutions:</strong></p>
+            <ul>
+                <li>wait longer (dns can take up to 48 hours)</li>
+                <li>double-check dns record in hostinger</li>
+                <li>verify a record points to <code>145.223.99.106</code></li>
+                <li>check ttl value (lower = faster propagation)</li>
+            </ul>
+
+            <h3>apache won't start</h3>
+            <p><strong>problem:</strong> <code>systemctl restart apache2</code> fails</p>
+            <p><strong>solutions:</strong></p>
+            <div class="code-block">
+                <code><span class="comment"># Check configuration</span>
+apache2ctl configtest
+
+<span class="comment"># Check error log</span>
+tail -f /var/log/apache2/error.log
+
+<span class="comment"># Common issues:</span>
+<span class="comment"># - Syntax error in virtual host file</span>
+<span class="comment"># - Port 80 already in use</span>
+<span class="comment"># - Missing directory</span></code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <h3>404 error on subdomain</h3>
+            <p><strong>problem:</strong> subdomain loads but shows 404</p>
+            <p><strong>solutions:</strong></p>
+            <div class="code-block">
+                <code><span class="comment"># Verify DocumentRoot exists</span>
+ls -la /var/www/html/codelabhaven/projects/your_project_name
+
+<span class="comment"># Check file permissions</span>
+chown -R www-data:www-data /var/www/html/codelabhaven/projects/your_project_name
+chmod -R 755 /var/www/html/codelabhaven/projects/your_project_name
+
+<span class="comment"># Verify index file exists</span>
+ls -la /var/www/html/codelabhaven/projects/your_project_name/index.html
+<span class="comment"># or</span>
+ls -la /var/www/html/codelabhaven/projects/your_project_name/index.php</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+
+            <h3>ssl certificate failed</h3>
+            <p><strong>problem:</strong> certbot fails to obtain certificate</p>
+            <p><strong>solutions:</strong></p>
+            <ul>
+                <li>ensure dns has fully propagated (wait 30+ minutes)</li>
+                <li>verify apache is running: <code>systemctl status apache2</code></li>
+                <li>check virtual host is enabled: <code>apache2ctl -S</code></li>
+                <li>verify firewall allows ports 80 and 443:
+                    <div class="code-block">
+                        <code>ufw status
+<span class="comment"># If needed:</span>
+ufw allow 80/tcp
+ufw allow 443/tcp</code>
+                        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+                    </div>
+                </li>
+                <li>check apache error log: <code>tail -f /var/log/apache2/error.log</code></li>
+            </ul>
+
+            <h3>sessions not working (php)</h3>
+            <p><strong>problem:</strong> login doesn't persist or sessions reset</p>
+            <p><strong>solutions:</strong></p>
+            <ul>
+                <li>verify session cookie domain is <code>.codelabhaven.com</code> (with leading dot)</li>
+                <li>clear browser cookies and try again</li>
+                <li>check <code>secure</code> flag matches https usage</li>
+                <li>verify session save path is writable:
+                    <div class="code-block">
+                        <code>ls -la /var/www/html/codelabhaven/projects/your_project_name/sessions
+chmod 755 /var/www/html/codelabhaven/projects/your_project_name/sessions</code>
+                        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+                    </div>
+                </li>
+            </ul>
+
+            <h3>certificate expired</h3>
+            <p><strong>problem:</strong> browser shows certificate error</p>
+            <p><strong>solutions:</strong></p>
+            <div class="code-block">
+                <code><span class="comment"># Check certificate expiration</span>
+certbot certificates
+
+<span class="comment"># Manually renew</span>
+certbot renew
+
+<span class="comment"># Reload Apache</span>
+systemctl reload apache2</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+            <p>certbot should auto-renew, but you can check the timer:</p>
+            <div class="code-block">
+                <code>systemctl status certbot.timer</code>
+                <button class="copy-btn" onclick="copyCode(this)">copy</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>summary</h2>
+            <p>after completing these steps, your new project will be:</p>
+            <ul>
+                <li>✓ accessible via <code>https://<span class="project-name">my-new-project</span>.codelabhaven.com</code></li>
+                <li>✓ automatically redirecting http to https</li>
+                <li>✓ using a valid ssl certificate</li>
+                <li>✓ auto-renewing ssl certificate</li>
+                <li>✓ working with sessions (if php project configured)</li>
+            </ul>
+            <div class="success"><strong>time required:</strong> ~15-30 minutes (mostly waiting for dns propagation)</div>
+            <div class="success"><strong>you're done!</strong> 🎉</div>
+        </div>
+
+    </div>
+
+    <script>
+        // Modal functions
+        function openModal() {
+            document.getElementById('projectModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('projectModal').classList.remove('show');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('projectModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Theme toggle functionality
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // Copy functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = '[copied]';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = 'copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                const textArea = document.createElement('textarea');
+                textArea.value = code;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                button.textContent = '[copied]';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = 'copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Project name update functionality
+        function updateProjectName() {
+            let projectName = document.getElementById('projectName').value.trim() || 'my-new-project';
+            
+            // Replace spaces with underscores and convert to lowercase
+            projectName = projectName.toLowerCase().replace(/\s+/g, '_');
+            
+            // Update the input field to show the formatted name
+            document.getElementById('projectName').value = projectName;
+            
+            const projectNameElements = document.querySelectorAll('.project-name');
+            
+            projectNameElements.forEach(element => {
+                element.textContent = projectName;
+            });
+
+            // Save to localStorage
+            localStorage.setItem('projectName', projectName);
+            
+            // Close modal
+            closeModal();
+        }
+
+        // Load saved theme and project name
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedProjectName = localStorage.getItem('projectName');
+            if (savedProjectName) {
+                document.getElementById('projectName').value = savedProjectName;
+                updateProjectName();
+            }
+            
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+            
+            // Listen for storage changes (when project name is updated in another tab)
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'projectName') {
+                    updateProjectName();
+                }
+            });
+            
+            // Update when page becomes visible (in case project name was changed in same window)
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    const savedProjectName = localStorage.getItem('projectName');
+                    if (savedProjectName) {
+                        document.getElementById('projectName').value = savedProjectName;
+                        updateProjectName();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

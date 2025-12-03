@@ -19,7 +19,7 @@
             background: #fff;
             color: #333;
             line-height: 1.8;
-            padding: 40px 20px;
+            padding: 100px 20px 40px 20px;
             font-size: 14px;
             transition: background 0.3s, color 0.3s;
         }
@@ -59,6 +59,75 @@
 
         .dark-theme .theme-toggle:hover {
             color: #a8b5c9;
+        }
+
+        .tabs {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0;
+            z-index: 100;
+        }
+
+        .tab {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-right: none;
+            color: #333;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .tab:first-child {
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .tab:last-child {
+            border-right: 1px solid #ddd;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+        .tab:hover {
+            background: #e0e0e0;
+        }
+
+        .tab.active {
+            background: #333;
+            color: #fff;
+            border-color: #333;
+        }
+
+        .tab.active:hover {
+            background: #000;
+        }
+
+        .dark-theme .tab {
+            background: #2d3748;
+            border-color: #4a5568;
+            color: #b4bcc8;
+        }
+
+        .dark-theme .tab:hover {
+            background: #3d4758;
+        }
+
+        .dark-theme .tab.active {
+            background: #8b9dc3;
+            color: #1e2a3a;
+            border-color: #8b9dc3;
+        }
+
+        .dark-theme .tab.active:hover {
+            background: #a8b5c9;
         }
 
         .project-config-btn {
@@ -439,6 +508,10 @@
     </style>
 </head>
 <body>
+    <div class="tabs">
+        <a href="index.html" class="tab active">deployment guide</a>
+        <a href="subdomain-guide.html" class="tab">subdomain guide</a>
+    </div>
     <button class="theme-toggle" onclick="toggleTheme()">◐</button>
     <button class="project-config-btn" onclick="openModal()">set project name</button>
 
